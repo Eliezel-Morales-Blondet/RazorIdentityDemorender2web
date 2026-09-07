@@ -26,6 +26,22 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
+async Task CrearRolesIniciales(WebApplication APP)
+{
+    using var scope = app.Services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    string[] roles = { "Admin", "User" };
+
+    foreach (var rol in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(rol))
+        {
+            await roleManager.CreateAsync(new IdentityRole(rol));
+        }
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -45,5 +61,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
+
+//Invocar la creacion de roles iniciales
+await CrearRolesIniciales(app);
 
 app.Run();
